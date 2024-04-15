@@ -19,7 +19,7 @@
 # - Diff sysusers.d with the previous version
 # - Diff factory/etc/nsswitch.conf with the previous version
 #   (details are often sprinkled around in README and manpages)
-SYSTEMD_VERSION = 252.4
+SYSTEMD_VERSION = 254.9
 SYSTEMD_SITE = $(call github,systemd,systemd-stable,v$(SYSTEMD_VERSION))
 SYSTEMD_LICENSE = \
 	LGPL-2.1+, \
@@ -46,7 +46,7 @@ SYSTEMD_LICENSE_FILES = \
 	LICENSES/murmurhash2-public-domain.txt \
 	LICENSES/OFL-1.1.txt \
 	LICENSES/README.md
-SYSTEMD_CPE_ID_VENDOR = systemd_project
+SYSTEMD_CPE_ID_VALID = YES
 SYSTEMD_INSTALL_STAGING = YES
 SYSTEMD_DEPENDENCIES = \
 	$(BR2_COREUTILS_HOST_DEPENDENCY) \
@@ -55,6 +55,7 @@ SYSTEMD_DEPENDENCIES = \
 	host-python-jinja2 \
 	kmod \
 	libcap \
+	libxcrypt \
 	util-linux-libs \
 	$(TARGET_NLS_DEPENDENCIES)
 
@@ -63,6 +64,7 @@ SYSTEMD_SELINUX_MODULES = systemd udev xdg
 SYSTEMD_PROVIDES = udev
 
 SYSTEMD_CONF_OPTS += \
+	-Dcreate-log-dirs=false \
 	-Ddbus=false \
 	-Ddbus-interfaces-dir=no \
 	-Ddefault-compression='auto' \
@@ -82,6 +84,7 @@ SYSTEMD_CONF_OPTS += \
 	-Dmode=release \
 	-Dnspawn-locale='C.UTF-8' \
 	-Dnss-systemd=true \
+	-Dpasswdqc=false \
 	-Dquotacheck-path=/usr/sbin/quotacheck \
 	-Dquotaon-path=/usr/sbin/quotaon \
 	-Drootlibdir='/usr/lib' \
@@ -96,7 +99,9 @@ SYSTEMD_CONF_OPTS += \
 	-Dtelinit-path= \
 	-Dtests=false \
 	-Dtmpfiles=true \
-	-Dumount-path=/usr/bin/umount
+	-Dukify=false \
+	-Dumount-path=/usr/bin/umount \
+	-Dxenctrl=false
 
 SYSTEMD_CFLAGS = $(TARGET_CFLAGS)
 ifeq ($(BR2_OPTIMIZE_FAST),y)
@@ -106,6 +111,10 @@ endif
 ifeq ($(BR2_nios2),y)
 # Nios2 ld emits warnings, make warnings not to be treated as errors
 SYSTEMD_LDFLAGS = $(TARGET_LDFLAGS) -Wl,--no-fatal-warnings
+endif
+
+ifeq ($(BR2_TARGET_GENERIC_REMOUNT_ROOTFS_RW),y)
+SYSTEMD_JOURNALD_PERMISSIONS = /var/log/journal d 2755 root systemd-journal - - - - -
 endif
 
 ifeq ($(BR2_PACKAGE_ACL),y)
@@ -213,13 +222,6 @@ ifeq ($(BR2_PACKAGE_UTIL_LINUX_LIBFDISK),y)
 SYSTEMD_CONF_OPTS += -Dfdisk=true
 else
 SYSTEMD_CONF_OPTS += -Dfdisk=false
-endif
-
-ifeq ($(BR2_PACKAGE_VALGRIND),y)
-SYSTEMD_DEPENDENCIES += valgrind
-SYSTEMD_CONF_OPTS += -Dvalgrind=true
-else
-SYSTEMD_CONF_OPTS += -Dvalgrind=false
 endif
 
 ifeq ($(BR2_PACKAGE_XZ),y)
@@ -352,7 +354,9 @@ SYSTEMD_CONF_OPTS += -Dutmp=false
 endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD_VCONSOLE),y)
-SYSTEMD_CONF_OPTS += -Dvconsole=true
+SYSTEMD_CONF_OPTS += \
+	-Dvconsole=true \
+	-Ddefault-keymap=$(call qstrip,$(BR2_PACKAGE_SYSTEMD_VCONSOLE_DEFAULT_KEYMAP))
 else
 SYSTEMD_CONF_OPTS += -Dvconsole=false
 endif
@@ -575,13 +579,8 @@ endif
 
 ifeq ($(BR2_PACKAGE_SYSTEMD_BOOT),y)
 SYSTEMD_INSTALL_IMAGES = YES
-SYSTEMD_DEPENDENCIES += gnu-efi
-SYSTEMD_CONF_OPTS += \
-	-Defi=true \
-	-Dgnu-efi=true \
-	-Defi-ld=bfd \
-	-Defi-libdir=$(STAGING_DIR)/usr/lib \
-	-Defi-includedir=$(STAGING_DIR)/usr/include/efi
+SYSTEMD_DEPENDENCIES += gnu-efi host-python-pyelftools
+SYSTEMD_CONF_OPTS += -Defi=true -Dbootloader=true
 
 SYSTEMD_BOOT_EFI_ARCH = $(call qstrip,$(BR2_PACKAGE_SYSTEMD_BOOT_EFI_ARCH))
 define SYSTEMD_INSTALL_BOOT_FILES
@@ -594,7 +593,7 @@ define SYSTEMD_INSTALL_BOOT_FILES
 endef
 
 else
-SYSTEMD_CONF_OPTS += -Defi=false -Dgnu-efi=false
+SYSTEMD_CONF_OPTS += -Defi=false -Dbootloader=false
 endif # BR2_PACKAGE_SYSTEMD_BOOT == y
 
 SYSTEMD_FALLBACK_HOSTNAME = $(call qstrip,$(BR2_TARGET_GENERIC_HOSTNAME))
@@ -623,11 +622,13 @@ define SYSTEMD_INSTALL_IMAGES_CMDS
 endef
 
 define SYSTEMD_PERMISSIONS
+	/boot d 700 0 0 - - - - -
 	/var/spool d 755 0 0 - - - - -
 	/var/lib d 755 0 0 - - - - -
 	/var/lib/private d 700 0 0 - - - - -
 	/var/log/private d 700 0 0 - - - - -
 	/var/cache/private d 700 0 0 - - - - -
+	$(SYSTEMD_JOURNALD_PERMISSIONS)
 	$(SYSTEMD_LOGIND_PERMISSIONS)
 	$(SYSTEMD_MACHINED_PERMISSIONS)
 	$(SYSTEMD_HOMED_PERMISSIONS)
@@ -639,7 +640,6 @@ endef
 define SYSTEMD_USERS
 	# udev user groups
 	- - render -1 * - - - DRI rendering nodes
-	- - sgx -1 * - - - SGX device nodes
 	# systemd user groups
 	- - systemd-journal -1 * - - - Journal
 	$(SYSTEMD_REMOTE_USER)
@@ -807,11 +807,13 @@ HOST_SYSTEMD_CONF_OPTS = \
 	--libdir=lib \
 	--sysconfdir=/etc \
 	--localstatedir=/var \
+	-Dcreate-log-dirs=false \
 	-Dmode=release \
 	-Dutmp=false \
 	-Dhibernate=false \
 	-Dldconfig=false \
 	-Dresolve=false \
+	-Dbootloader=false \
 	-Defi=false \
 	-Dtpm=false \
 	-Denvironment-d=false \
@@ -826,6 +828,7 @@ HOST_SYSTEMD_CONF_OPTS = \
 	-Dhostnamed=false \
 	-Dlocaled=false \
 	-Dmachined=false \
+	-Dpasswdqc=false \
 	-Dportabled=false \
 	-Dsysext=false \
 	-Dsysupdate=false \
@@ -868,9 +871,11 @@ HOST_SYSTEMD_CONF_OPTS = \
 	-Dinitrd=false \
 	-Dxdg-autostart=false \
 	-Dkernel-install=false \
+	-Dukify=false \
 	-Danalyze=false \
 	-Dlibcryptsetup=false \
 	-Daudit=false \
+	-Dxenctrl=false \
 	-Dzstd=false
 
 HOST_SYSTEMD_DEPENDENCIES = \
@@ -878,6 +883,7 @@ HOST_SYSTEMD_DEPENDENCIES = \
 	host-util-linux \
 	host-patchelf \
 	host-libcap \
+	host-libxcrypt \
 	host-gperf \
 	host-python-jinja2
 

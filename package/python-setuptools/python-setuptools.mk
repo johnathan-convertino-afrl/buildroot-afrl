@@ -4,14 +4,16 @@
 #
 ################################################################################
 
-PYTHON_SETUPTOOLS_VERSION = 65.6.3
+PYTHON_SETUPTOOLS_VERSION = 69.2.0
 PYTHON_SETUPTOOLS_SOURCE = setuptools-$(PYTHON_SETUPTOOLS_VERSION).tar.gz
-PYTHON_SETUPTOOLS_SITE = https://files.pythonhosted.org/packages/b6/21/cb9a8d0b2c8597c83fce8e9c02884bce3d4951e41e807fc35791c6b23d9a
+PYTHON_SETUPTOOLS_SITE = https://files.pythonhosted.org/packages/4d/5b/dc575711b6b8f2f866131a40d053e30e962e633b332acf7cd2c24843d83d
 PYTHON_SETUPTOOLS_LICENSE = MIT
 PYTHON_SETUPTOOLS_LICENSE_FILES = LICENSE
 PYTHON_SETUPTOOLS_CPE_ID_VENDOR = python
 PYTHON_SETUPTOOLS_CPE_ID_PRODUCT = setuptools
-PYTHON_SETUPTOOLS_SETUP_TYPE = setuptools
+PYTHON_SETUPTOOLS_SETUP_TYPE = pep517
+PYTHON_SETUPTOOLS_DEPENDENCIES = host-python-wheel
+HOST_PYTHON_SETUPTOOLS_DEPENDENCIES = host-python-wheel
 
 $(eval $(python-package))
 $(eval $(host-python-package))

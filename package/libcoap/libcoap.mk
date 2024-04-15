@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-LIBCOAP_VERSION = 4.3.1
+LIBCOAP_VERSION = 4.3.4
 LIBCOAP_SITE = $(call github,obgm,libcoap,v$(LIBCOAP_VERSION))
 LIBCOAP_INSTALL_STAGING = YES
 LIBCOAP_LICENSE = BSD-2-Clause
@@ -18,6 +18,9 @@ LIBCOAP_AUTORECONF = YES
 LIBCOAP_IGNORE_CVES += CVE-2023-30362
 # Doesn't affect 4.3.1, see https://github.com/obgm/libcoap/issues/1117
 LIBCOAP_IGNORE_CVES += CVE-2023-35862
+
+# 0001-coap_oscore-c-Fix-parsing-OSCORE-configuration-information.patch
+LIBCOAP_IGNORE_CVES += CVE-2024-0962
 
 ifeq ($(BR2_PACKAGE_GNUTLS),y)
 LIBCOAP_DEPENDENCIES += gnutls

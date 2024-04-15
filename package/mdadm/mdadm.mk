@@ -4,12 +4,12 @@
 #
 ################################################################################
 
-MDADM_VERSION = 4.2
+MDADM_VERSION = 4.3
 MDADM_SOURCE = mdadm-$(MDADM_VERSION).tar.xz
 MDADM_SITE = $(BR2_KERNEL_MIRROR)/linux/utils/raid/mdadm
 MDADM_LICENSE = GPL-2.0+
 MDADM_LICENSE_FILES = COPYING
-MDADM_CPE_ID_VENDOR = mdadm_project
+MDADM_CPE_ID_VALID = YES
 
 MDADM_CXFLAGS = $(TARGET_CFLAGS)
 
