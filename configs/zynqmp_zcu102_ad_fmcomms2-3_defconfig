@@ -31,3 +31,4 @@ BR2_PACKAGE_POLL_SYSFS=y
 BR2_PACKAGE_AD936X_REF_CAL=y
 BR2_ROOTFS_OVERLAY="board/rfbase/afrl/all/rootfs_overlay"
 BR2_ROOTFS_USERS_TABLES="board/rfbase/afrl/all/users.txt"
+BR2_TARGET_ROOTFS_EXT2_SIZE=512M
