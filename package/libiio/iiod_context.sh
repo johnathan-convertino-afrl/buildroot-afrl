@@ -46,8 +46,8 @@ remove() {
 	sed -i "/^${1}=/d" ${INI_FILE}
 }
 
-# build up ${INI_FILE} or add to it if it is not there
-replace_or_add() {
+# build up ${INI_FILE} and add to it if it is not there
+add() {
 	if [ ${#1} -eq 0 ] ; then
 		return
 	fi
@@ -55,11 +55,8 @@ replace_or_add() {
 		remove $1
 		return
 	fi
-	if grep -q "^$1=" ${INI_FILE} ; then
-		sed -i -e "/^$1=/c $1=$2" ${INI_FILE}
-	else
-		echo "$1=$2" >> ${INI_FILE}
-	fi
+
+        echo "$1=$2" >> ${INI_FILE}
 }
 
 if [ "$1" = "clean" ] ; then
@@ -68,39 +65,21 @@ fi
 
 #prep the file
 if [[ -e ${INI_FILE} ]]; then
-	remove
+	rm ${INI_FILE}
 fi
-grep -q '\[Context Attributes\]' ${INI_FILE} || echo "[Context Attributes]" >> ${INI_FILE}
+touch ${INI_FILE}
+echo "[Context Attributes]" >> ${INI_FILE}
 
 # save all we learned into the file
 if [ "${BOARD+x}x" != "x" -a "${BASE}x" != "x" ] ; then
-	replace_or_add hw_model "${BOARD} on ${BASE}"
+	add hw_model "${BOARD} on ${BASE}"
 fi
-replace_or_add hw_carrier "${BASE}"
-replace_or_add hw_mezzanine "${BOARD}"
-replace_or_add hw_name "${NAME}"
-replace_or_add hw_vendor "${VENDOR}"
-replace_or_add hw_serial "${SERIAL}"
-replace_or_add unique_id "${UNIQUE_ID}"
-replace_or_add dtoverlay "${OVERLAY}"
-
-EXTRA_EEPROM_BOARDS="EVAL-CN0511-RPIZ"
-EXTRA_EEPROM_FILE="/sys/devices/platform/soc/fe804000.i2c/i2c-1/1-0051/eeprom"
-CAN_READ_EXTRA_EEPROM=0
-
-if echo "$EXTRA_EEPROM_BOARDS" | grep -w -q "$NAME"; then
-	CAN_READ_EXTRA_EEPROM=1
-fi
-
-if [ "$CAN_READ_EXTRA_EEPROM" = "1" -a -f "$EXTRA_EEPROM_FILE" ]; then
-	while read -r LINE; do
-		IFS='=' read -r KEY VALUE <<-EOF
-		$LINE
-		EOF
-		if [ -n "$KEY" -a -n "$VALUE" ]; then
-			replace_or_add "$KEY" "$VALUE"
-		fi
-	done < "$EXTRA_EEPROM_FILE"
-fi
+add hw_carrier "${BASE}"
+add hw_mezzanine "${BOARD}"
+add hw_name "${NAME}"
+add hw_vendor "${VENDOR}"
+add hw_serial "${SERIAL}"
+add unique_id "${UNIQUE_ID}"
+add dtoverlay "${OVERLAY}"
 
 exit 0
