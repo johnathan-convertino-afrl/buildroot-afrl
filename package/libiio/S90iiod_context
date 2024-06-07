@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# iiod_context create script
+
+case "$1" in
+	start)
+		echo "Creating IIO Context"
+		/usr/sbin/iiod_context.sh
+		;;
+
+	*)
+		echo "Usage: $0 {start}"
+		exit 1
+esac

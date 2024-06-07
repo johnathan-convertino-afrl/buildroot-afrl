@@ -109,6 +109,10 @@ ifeq ($(BR2_PACKAGE_LIBIIO_IIOD),y)
 define LIBIIO_INSTALL_INIT_SYSV
 	$(INSTALL) -D -m 0755 package/libiio/S99iiod \
 		$(TARGET_DIR)/etc/init.d/S99iiod
+	$(INSTALL) -D -m 0755 package/libiio/iiod_context.sh \
+		$(TARGET_DIR)/usr/sbin/iiod_context.sh
+	$(INSTALL) -D -m 0755 package/libiio/S90iiod_context \
+		$(TARGET_DIR)/etc/init.d/S90iiod_context
 endef
 endif
 
