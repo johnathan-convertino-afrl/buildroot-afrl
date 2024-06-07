@@ -15,7 +15,7 @@ SELF=$0
 		[ -r "$p" ] && exec printf '%s\n' "$p"
 	done
 	exit 1
-) && SELF=$(readlink -e -- "$SELF") || SELF=unknown
+) && SELF=$(readlink -f -- "$SELF") || SELF=unknown
 
 #some systems have null in the device tree, so replace those with spaces
 #some systems include non-printable chars, or color codes so also remove those.
