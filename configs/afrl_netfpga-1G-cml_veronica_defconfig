@@ -23,10 +23,10 @@ BR2_PACKAGE_HOST_LINUX_HEADERS_CUSTOM_6_6=y
 BR2_LINUX_KERNEL=y
 BR2_LINUX_KERNEL_IMAGEGZ=y
 BR2_LINUX_KERNEL_CUSTOM_TARBALL=y
-BR2_LINUX_KERNEL_CUSTOM_TARBALL_LOCATION="$(call github,johnathan-convertino-afrl,linux,ddacc972a66ca39a314140a7dd215521081d75b5)/afrl_ad_master.tar.gz"
-BR2_LINUX_KERNEL_DEFCONFIG="afrl_netfpga-1G-fmc_veronica"
+BR2_LINUX_KERNEL_CUSTOM_TARBALL_LOCATION="$(call github,johnathan-convertino-afrl,linux,41b4f6bb2e36af9ebd96295850d9ec1c6ae7b761)/afrl_ad_master.tar.gz"
+BR2_LINUX_KERNEL_DEFCONFIG="afrl_netfpga-1G-cml_veronica"
 BR2_LINUX_KERNEL_DTS_SUPPORT=y
-BR2_LINUX_KERNEL_INTREE_DTS_NAME="veronica/afrl_netfpga-1G-fmc_veronica"
+BR2_LINUX_KERNEL_INTREE_DTS_NAME="veronica/afrl_netfpga-1G-cml_veronica"
 BR2_LINUX_KERNEL_NEEDS_HOST_OPENSSL=y
 
 # UBOOT (disabled)
@@ -34,7 +34,7 @@ BR2_LINUX_KERNEL_NEEDS_HOST_OPENSSL=y
 ##BR2_TARGET_UBOOT_BUILD_SYSTEM_KCONFIG=y
 ##BR2_TARGET_UBOOT_CUSTOM_TARBALL=y
 ##BR2_TARGET_UBOOT_CUSTOM_TARBALL_LOCATION="$(call github,johnathan-convertino-afrl,u-boot-veronica,5d6dbbe374221157ae4a8fd74fa8aa504190d09e)/afrl_uboot_master.tar.gz"
-##BR2_TARGET_UBOOT_BOARD_DEFCONFIG="afrl_netfpga-1G-fmc_veronica"
+##BR2_TARGET_UBOOT_BOARD_DEFCONFIG="afrl_netfpga-1G-cml_veronica"
 ##BR2_TARGET_UBOOT_NEEDS_DTC=y
 ##BR2_TARGET_UBOOT_NEEDS_OPENSSL=n
 ##BR2_TARGET_UBOOT_NEEDS_GNUTLS=n
